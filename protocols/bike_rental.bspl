@@ -1,0 +1,9 @@
+BikeRental {
+        role Client, Renter
+        parameter out ID key, out bikeID, out price, in origin, in destination, out rID
+
+        Client -> Renter: request[in origin, in destination, out ID]
+        Renter -> Client: offer[in ID, in origin, in destination, out bikeID, out price]
+        Client -> Renter: accept[in ID, in bikeID, in price, out rID]
+        Client -> Renter: reject[in ID, in bikeID, in price, out rID]
+}
