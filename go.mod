@@ -4,7 +4,9 @@ go 1.14
 
 require (
 	github.com/google/uuid v1.1.1
-	github.com/libp2p/go-libp2p-peer v0.2.0
-	github.com/mikelsr/bspl v0.0.0-20200424190829-8861eb3dcffd
-	github.com/mikelsr/nahs v0.0.0-20200424200225-28b14275b14f
+	github.com/ipfs/go-log v1.0.4
+	github.com/libp2p/go-libp2p-core v0.5.2
+	github.com/libp2p/go-libp2p-kad-dht v0.7.9 // indirect
+	github.com/mikelsr/bspl v0.0.0-20200425172941-3cf8c5cbc6a6
+	github.com/mikelsr/nahs v0.0.0-20200425165543-85d0670b3609
 )
