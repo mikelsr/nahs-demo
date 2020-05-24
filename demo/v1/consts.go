@@ -1,9 +1,11 @@
-package demov1
+package v1
 
 import (
 	log "github.com/ipfs/go-log"
 	"github.com/mikelsr/bspl"
 	"github.com/mikelsr/nahs/net"
+
+	demo "github.com/mikelsr/nahs-demo/demo"
 )
 
 const (
@@ -17,9 +19,8 @@ const (
 )
 
 var (
-	bikeRentalProtocol = getProtocol(bikeRentalFile)
-
-	bikeRenterService = net.Service{
+	bikeRentalProtocol = demo.GetProtocol(bikeRentalFile)
+	bikeRenterService  = net.Service{
 		Roles:    []bspl.Role{"Renter"},
 		Protocol: bikeRentalProtocol,
 	}

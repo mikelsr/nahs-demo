@@ -1,4 +1,4 @@
-package demov1
+package demo
 
 import (
 	"errors"
@@ -24,7 +24,9 @@ func getProtoFolder() (string, error) {
 	return filepath.Join(dir, "protocols"), nil
 }
 
-func getProtocol(filename string) bspl.Protocol {
+// GetProtocol builds a protocol from the corresponding file
+// in the demo protocol folder
+func GetProtocol(filename string) bspl.Protocol {
 	folder, err := getProtoFolder()
 	if err != nil {
 		panic(err)

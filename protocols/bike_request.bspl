@@ -1,0 +1,9 @@
+BikeRequest {
+        role Requester, Station
+        parameter out ID key, in bikeNum, in datetime, out offerNum, out rID
+
+        Requester -> Station: request[out ID, in bikeNum, in datetime]
+        Station -> Requester: offer[in ID, out offerNum]
+        Requester -> Station: accept[in ID, out rID]
+        Requester -> Station: reject[in ID, out rID]
+}

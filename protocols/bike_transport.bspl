@@ -1,0 +1,10 @@
+BikeTransport {
+        role Renter, Transport
+        parameter out ID key, in bikeNum, in src, in dst, in datetime, out rID, out result
+
+        Renter -> Transport: request[out ID, in bikeNum, in src, in dst, in datetime]
+        Transport -> Renter: accept[in ID, out rID]
+        Transport -> Renter: reject[in ID, out rID]
+        Transport -> Renter: success[in ID, out result]
+        Transport -> Renter: failure[in ID, out result]
+}

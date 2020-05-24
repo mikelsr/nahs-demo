@@ -1,4 +1,4 @@
-package demov1
+package v1
 
 import (
 	"errors"

@@ -1,4 +1,4 @@
-package demov1
+package v1
 
 import (
 	"errors"
@@ -117,6 +117,7 @@ type personReasoner struct {
 
 func newPersonReasoner() *personReasoner {
 	p := new(personReasoner)
+
 	p.offeredServices = make(map[string]bspl.Protocol)
 	p.consumedServices = make(map[string]bspl.Protocol)
 	p.openInstances = make(map[string]bspl.Instance)

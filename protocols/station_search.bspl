@@ -1,0 +1,7 @@
+StationSearch {
+        role User, Locator
+        parameter out ID key, in coordinates, out stationID
+
+        User -> Locator: request[out ID, in coordinates]
+        Locator -> Client: inform[in ID, out stationID]
+}

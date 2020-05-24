@@ -1,10 +1,20 @@
-package demov1
+package v1
 
 import (
 	"testing"
 
+	log "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p-core/peerstore"
+	"github.com/mikelsr/nahs/net"
 )
+
+func TestMain(m *testing.M) {
+	log.SetAllLoggers(log.LevelWarn)
+	log.SetLogLevel(logName, "debug")
+	log.SetLogLevel(net.LogName, "error")
+
+	m.Run()
+}
 
 func TestPerson_RentBike(t *testing.T) {
 	person := NewPerson(0.02)
