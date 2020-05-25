@@ -35,7 +35,6 @@ func NewPerson(maxPrice float64) Person {
 	p.node = net.LocalNode(p.reasoner)
 	p.responses = make(chan bool)
 
-	go p.dropInstances()
 	go p.handleOffers()
 
 	logger.Debugf("Created person with ID: '%s'", p.node.ID())
@@ -74,13 +73,6 @@ func (p Person) RentBike(origin, destination string) (string, error) {
 		return bikeID, nil
 	}
 	return "", errors.New("The renter did not reply")
-}
-
-func (p Person) dropInstances() {
-	for {
-		instanceKey := <-p.reasoner.dropInstanceChan
-		delete(p.node.OpenInstances, instanceKey)
-	}
 }
 
 func (p Person) handleOffers() {
@@ -138,7 +130,6 @@ func (pr *personReasoner) DropInstance(instanceKey string, motive string) error 
 	}
 	pr.droppedInstances[instanceKey] = instance
 	delete(pr.openInstances, instanceKey)
-	pr.dropInstanceChan <- instanceKey
 	return nil
 }
 
@@ -152,6 +143,7 @@ func (pr *personReasoner) Instances(p bspl.Protocol) []bspl.Instance {
 	i := 0
 	for _, v := range pr.openInstances {
 		instances[i] = v
+		i++
 	}
 	return instances
 }

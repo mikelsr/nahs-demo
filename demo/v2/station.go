@@ -1,11 +1,12 @@
 package v2
 
-type station struct {
-	id     string
-	coords coords
+// Station that charges bikes
+type Station struct {
+	ID     string
+	Coords Coords
 	bikes  []*bike
 }
 
-func (s station) hooks() []func() {
+func (s Station) hooks() []func() {
 	return []func(){}
 }

@@ -8,7 +8,7 @@ import (
 
 const (
 	bikeRentalFile    = "bike_rental.bspl"
-	bikeRequestFile   = "bike_requst.bspl"
+	bikeRequestFile   = "bike_request.bspl"
 	bikeRideFile      = "bike_ride.bspl"
 	bikeStorageFile   = "bike_storage.bspl"
 	bikeTransportFile = "bike_transport.bspl"

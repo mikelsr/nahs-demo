@@ -2,12 +2,13 @@ package v2
 
 import "fmt"
 
-type coords struct {
-	x, y float64
+// Coords represents the coordinates of an agent
+type Coords struct {
+	X, Y float64
 }
 
-func (c coords) String() string {
-	return fmt.Sprintf("%f,%f", c.x, c.y)
+func (c Coords) String() string {
+	return fmt.Sprintf("%f,%f", c.X, c.Y)
 }
 
 type response struct {

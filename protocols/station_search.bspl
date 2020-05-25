@@ -3,5 +3,5 @@ StationSearch {
         parameter out ID key, in coordinates, out stationID
 
         User -> Locator: request[out ID, in coordinates]
-        Locator -> Client: inform[in ID, out stationID]
+        Locator -> User: inform[in ID, out stationID]
 }

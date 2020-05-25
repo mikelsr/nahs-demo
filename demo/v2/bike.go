@@ -1,7 +1,7 @@
 package v2
 
 type bike struct {
-	coords coords
+	Coords Coords
 	id     string
 	free   bool
 }

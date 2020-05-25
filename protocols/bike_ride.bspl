@@ -1,7 +1,7 @@
 BikeRide {
         role Person, Bike
-        params out ID key, in rentalID, in zone
+        parameter in ID key, out rentalID, out zone
 
-        Person -> Bike: pick[out ID key, in rentalID]
-        Person -> Bike: drop[in ID key, in zone]
+        Person -> Bike: pick[in ID key, out rentalID]
+        Person -> Bike: drop[in ID key, in rentalID, out dropStation]
 }

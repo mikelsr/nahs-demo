@@ -1,0 +1,7 @@
+BikeStorage {
+        role Bike, Station
+        parameter out ID key, in rentalID
+
+        Bike -> Station: dock[out ID key]
+        Station -> Bike: release[in ID, in rentalID]
+}

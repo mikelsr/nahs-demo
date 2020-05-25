@@ -32,20 +32,11 @@ func NewRenter() Renter {
 	r.node = net.LocalNode(r.reasoner)
 	r.node.AddProtocol(bikeRentalProtocol)
 
-	go r.dropInstances()
 	go r.offerBikes()
 
 	logger.Debugf("Created renter with ID: '%s'", r.node.ID())
 
 	return r
-}
-
-func (r Renter) dropInstances() {
-	for {
-		instanceKey := <-r.reasoner.dropInstanceChan
-		logger.Debugf("Drop instance '%s'", instanceKey)
-		delete(r.node.OpenInstances, instanceKey)
-	}
 }
 
 func (r Renter) offerBike(instanceKey string) bool {
@@ -103,7 +94,6 @@ func newRenterReasoner() *renterReasoner {
 
 	r.offeredServices[bikeRentalProtocol.Key()] = bikeRentalProtocol
 
-	r.dropInstanceChan = make(chan string)
 	r.pendingOffers = make(chan string)
 
 	return r
@@ -116,7 +106,6 @@ func (rr *renterReasoner) DropInstance(instanceKey string, motive string) error 
 	}
 	rr.droppedInstances[instanceKey] = instance
 	delete(rr.openInstances, instanceKey)
-	rr.dropInstanceChan <- instanceKey
 	return nil
 }
 
@@ -130,6 +119,7 @@ func (rr *renterReasoner) Instances(p bspl.Protocol) []bspl.Instance {
 	i := 0
 	for _, v := range rr.openInstances {
 		instances[i] = v
+		i++
 	}
 	return instances
 }
