@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mikelsr/bspl"
 	"github.com/mikelsr/nahs"
@@ -94,11 +96,6 @@ func (rr *renterReasoner) Instantiate(p bspl.Protocol, roles bspl.Roles, ins bsp
 	return nil, fmt.Errorf("Protocol '%s' not supported by this Node", p.Key())
 }
 
-func (rr *renterReasoner) UpdateInstance(j bspl.Instance) error {
-
-	return nil
-}
-
 func (rr *renterReasoner) RegisterInstance(i bspl.Instance) error {
 	if _, found := rr.openInstances[i.Key()]; found {
 		return fmt.Errorf("Instance '%s' already existed", i.Key())
@@ -119,10 +116,29 @@ func (rr *renterReasoner) RegisterInstance(i bspl.Instance) error {
 	}
 	rr.openInstances[i.Key()] = i
 
-	switch i.Protocol().Name {
-	case stationSearchProtocol.Name:
-		return rr.registerStationSearch(i)
+	var err error
+	switch i.Protocol().Key() {
+	case bikeRentalProtocol.Key():
+		err = rr.registerBikeRental(i)
+	case stationSearchProtocol.Key():
+		err = rr.registerStationSearch(i)
 	}
+	if err != nil {
+		logger.Error(err)
+	}
+	return err
+}
+
+func (rr *renterReasoner) registerBikeRental(i bspl.Instance) error {
+	stationID := i.GetValue("origin")
+	if stationID == "" || !rr.hasStation(stationID) {
+		errMsg := fmt.Sprintf("Invalid or null origin station ID: '%s'", stationID)
+		go sendEvent(events.MakeDropEvent(i.Key(), errMsg), i, rr.Node)
+		return errors.New(errMsg)
+	}
+	i.SetValue("price", fmt.Sprint(rr.calculatePrice()))
+	i.SetValue("bikeID", "testBike") // TODO: select available bike
+	go sendEvent(events.MakeUpdateEvent(i), i, rr.Node)
 	return nil
 }
 
@@ -143,7 +159,7 @@ func (rr *renterReasoner) registerStationSearch(i bspl.Instance) error {
 	}
 	if errMsg != "" {
 		rr.DropInstance(i.Key(), errMsg)
-		sendEvent(events.MakeDropEvent(i.Key(), errMsg), i, rr.Node)
+		go sendEvent(events.MakeDropEvent(i.Key(), errMsg), i, rr.Node)
 		return errors.New(errMsg)
 	}
 	station := rr.nearestStation(Coords{X: x, Y: y})
@@ -152,7 +168,49 @@ func (rr *renterReasoner) registerStationSearch(i bspl.Instance) error {
 	return nil
 }
 
-func (rr *renterReasoner) nearestStation(c Coords) *Station {
+func (rr *renterReasoner) UpdateInstance(j bspl.Instance) error {
+	i, found := rr.openInstances[j.Key()]
+	if !found {
+		return fmt.Errorf("Instance '%s' not found", j.Key())
+	}
+	actions, _, err := i.Diff(j)
+	if err != nil {
+		return err
+	}
+	switch j.Protocol().Key() {
+	case bikeRentalProtocol.Key():
+		err = rr.updateBikeRental(j, actions)
+	}
+	if err != nil {
+		return err
+	}
+	i.Update(j)
+	return nil
+}
+
+func (rr *renterReasoner) updateBikeRental(j bspl.Instance, actions []bspl.Action) error {
+	if len(actions) != 2 {
+		return errors.New("Unexpected actions")
+	}
+	if actions[0].Name == "accept" {
+		if actions[1].Name != "reject" {
+			return errors.New("Unexpected actions")
+		}
+	} else if actions[0].Name == "reject" {
+		if actions[1].Name != "reject" {
+			return errors.New("Unexpected actions")
+		}
+	} else {
+		return errors.New("Unexpected actions")
+	}
+	client := j.Roles()["Client"]
+	bikeID := j.GetValue("bikeID")
+	rID := j.GetValue("rID")
+	logger.Infof("Response from '%s' for bike '%s' offer: '%s'", client, bikeID, rID)
+	return nil
+}
+
+func (rr renterReasoner) nearestStation(c Coords) *Station {
 	if len(rr.stations) == 0 {
 		return nil
 	}
@@ -166,4 +224,21 @@ func (rr *renterReasoner) nearestStation(c Coords) *Station {
 		}
 	}
 	return s
+}
+
+func (rr renterReasoner) calculatePrice() float64 {
+	possiblePrices := []float64{0.01, 0.02, 0.03}
+	rand.Seed(time.Now().Unix())
+	// offer a random price to the client
+	price := possiblePrices[rand.Intn(len(possiblePrices))]
+	return price
+}
+
+func (rr renterReasoner) hasStation(stationID string) bool {
+	for _, s := range rr.stations {
+		if s.ID == stationID {
+			return true
+		}
+	}
+	return false
 }

@@ -10,6 +10,7 @@ require (
 	github.com/libp2p/go-libp2p-circuit v0.2.3 // indirect
 	github.com/libp2p/go-libp2p-core v0.5.6
 	github.com/libp2p/go-libp2p-kad-dht v0.8.0 // indirect
+	github.com/libp2p/go-libp2p-peer v0.2.0
 	github.com/libp2p/go-libp2p-peerstore v0.2.4
 	github.com/libp2p/go-libp2p-record v0.1.3 // indirect
 	github.com/libp2p/go-libp2p-swarm v0.2.5 // indirect
@@ -20,5 +21,4 @@ require (
 	github.com/multiformats/go-multibase v0.0.3 // indirect
 	golang.org/x/net v0.0.0-20200520182314-0ba52f642ac2 // indirect
 	golang.org/x/sys v0.0.0-20200523222454-059865788121 // indirect
-	google.golang.org/appengine v1.4.0
 )

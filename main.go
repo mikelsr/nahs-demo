@@ -39,10 +39,10 @@ var (
 func main() {
 	log.SetAllLoggers(log.LevelInfo)
 	log.SetLogLevel("nahs/net", "info")
-	log.SetLogLevel("nahs-demo/v2", "info")
+	log.SetLogLevel("nahs-demo/v2", "debug")
 
-	s1 := &demo.Station{ID: "stationA", Coords: demo.Coords{X: 0, Y: 0}}
-	s2 := &demo.Station{ID: "stationA", Coords: demo.Coords{X: 0, Y: 0}}
+	s1 := &demo.Station{ID: "stationA", Coords: demo.Coords{X: 8, Y: 8}}
+	s2 := &demo.Station{ID: "stationB", Coords: demo.Coords{X: 40, Y: 40}}
 
 	renter := demo.NewRenter(s1, s2)
 	person := demo.NewPerson()

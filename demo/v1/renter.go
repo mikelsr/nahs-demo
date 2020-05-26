@@ -138,18 +138,18 @@ func (rr *renterReasoner) UpdateInstance(j bspl.Instance) error {
 		return err
 	}
 	if len(actions) != 2 {
-		return errors.New("Unepected actions")
+		return errors.New("Unexpected actions")
 	}
 	if actions[0].Name == "accept" {
 		if actions[1].Name != "reject" {
-			return errors.New("Unepected actions")
+			return errors.New("Unexpected actions")
 		}
 	} else if actions[0].Name == "reject" {
 		if actions[1].Name != "reject" {
-			return errors.New("Unepected actions")
+			return errors.New("Unexpected actions")
 		}
 	} else {
-		return errors.New("Unepected actions")
+		return errors.New("Unexpected actions")
 	}
 	i.Update(j)
 	client := i.Roles()["Client"]
