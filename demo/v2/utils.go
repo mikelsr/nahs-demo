@@ -14,7 +14,7 @@ import (
 func sendEvent(e events.Event, i bspl.Instance, n *nahs.Node) {
 	target := n.OpenInstances[i.Key()]
 	logger.Infof("\t[%s] Send event '%s:%s' to node %s (instance key: %s)",
-		shortStr(n.ID().Pretty()), e.Type(), shortStr(e.ID()), shortStr(target.Pretty()), i.Key())
+		shortID(n.ID()), e.Type(), shortID(e.ID()), shortID(target), i.Key())
 	n.SendEvent(target, e)
 }
 
@@ -32,20 +32,22 @@ func sendEventWithResults(node *nahs.Node, id peer.ID, event events.Event) (<-ch
 	return okChan, errChan
 }
 
-type agent interface {
-	ID() string
-}
-
 func shortStr(str string) string {
 	return color.New(color.Bold, color.FgGreen).Sprint(strings.ToUpper(str[len(str)-4:]))
 }
 
-func shortID(a agent) string {
-	return shortStr(a.ID())
+func shortID(s interface{}) string {
+	switch s.(type) {
+	case string:
+		return shortStr(s.(string))
+	case peer.ID:
+		return shortStr(s.(peer.ID).Pretty())
+	}
+	return ""
 }
 
-func waitForContact(n *nahs.Node, id string, result chan string) {
-	logger.Debugf("\t[%s] Waiting to discover node %s", shortStr(n.ID().Pretty()), shortStr(id))
+func waitForContact(n *nahs.Node, id string, result chan bool) {
+	logger.Debugf("\t[%s] Waiting to discover node %s", shortID(n.ID().Pretty()), shortID(id))
 	pid, _ := peer.IDB58Decode(id)
 	for {
 		if LocalNodes {
@@ -56,7 +58,8 @@ func waitForContact(n *nahs.Node, id string, result chan string) {
 		}
 		p := n.Peerstore().Addrs(pid)
 		if len(p) != 0 {
-			result <- id
+			logger.Debugf("\t[%s] Discovered %s", shortID(n.ID().Pretty()), shortID(id))
+			result <- true
 			return
 		}
 	}

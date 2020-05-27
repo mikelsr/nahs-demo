@@ -29,7 +29,7 @@ func NewPerson() Person {
 	p.Node = net.LocalNode(p.reasoner)
 	p.reasoner.Node = p.Node
 
-	logger.Debugf("\tCreated person with ID %s (%s)", shortID(p), p.ID())
+	logger.Debugf("\tCreated person with ID %s (%s)", shortID(p.ID()), p.ID())
 	return p
 }
 
@@ -42,7 +42,7 @@ func (p Person) ID() string {
 func (p Person) Travel(src Coords, dst Coords) error {
 
 	// find nearest station
-	logger.Infof("\t[%s] Search for station", shortID(p))
+	logger.Infof("\t[%s] Search for station", shortID(p.ID()))
 	result := make(chan string)
 	errc := make(chan error)
 	defer close(result)
@@ -51,9 +51,9 @@ func (p Person) Travel(src Coords, dst Coords) error {
 	var station string
 	select {
 	case station = <-result:
-		logger.Infof("\t[%s] Nearest station found: %s", shortID(p), shortStr(station))
+		logger.Infof("\t[%s] Nearest station found: %s", shortID(p.ID()), shortID(station))
 	case err := <-errc:
-		logger.Errorf("\t[%s] Couldn't find station: %s", shortID(p), err)
+		logger.Errorf("\t[%s] Couldn't find station: %s", shortID(p.ID()), err)
 		return err
 	}
 
@@ -66,9 +66,9 @@ func (p Person) Travel(src Coords, dst Coords) error {
 			errMsg := "Bike found but rejected."
 			return errors.New(errMsg)
 		}
-		logger.Infof("\t[%s] Bike with id %s rented", shortID(p), shortStr(bikeID))
+		logger.Infof("\t[%s] Bike with id %s rented", shortID(p.ID()), shortID(bikeID))
 	case err := <-errc:
-		logger.Errorf("\t[%s] Couldn't rent bike: %s", shortID(p), err)
+		logger.Errorf("\t[%s] Couldn't rent bike: %s", shortID(p.ID()), err)
 		return err
 	}
 
@@ -81,14 +81,15 @@ func (p Person) Travel(src Coords, dst Coords) error {
 	go p.reasoner.stationSearch(dst, result, errc)
 	select {
 	case station = <-result:
-		logger.Infof("\t[%s] Nearest station found: %s", shortID(p), shortStr(station))
+		logger.Infof("\t[%s] Nearest station found: %s", shortID(p.ID()), shortID(station))
 	case err := <-errc:
-		logger.Errorf("\t[%s] Couldn't find station: %s", shortID(p), err)
+		logger.Errorf("\t[%s] Couldn't find station: %s", shortID(p.ID()), err)
 		return err
 	}
-	logger.Infof("\t[%s] Dropping bike %s at station %s", shortID(p), shortStr(bikeID), shortStr(station))
+	logger.Infof("\t[%s] Dropping bike %s at station %s", shortID(p.ID()), shortID(bikeID), shortID(station))
 
 	// drop the bike
+	p.reasoner.dropBike(station)
 
 	return nil
 }
@@ -104,7 +105,8 @@ type personReasoner struct {
 	stationSearches map[string]chan string
 	rentalRequests  map[string]chan string
 
-	maxPrice float64
+	maxPrice        float64
+	currentBikeRide string
 }
 
 func newPersonReasoner() *personReasoner {
@@ -289,16 +291,16 @@ func (pr *personReasoner) updateBikeRental(i, j bspl.Instance, actions []bspl.Ac
 		return errors.New(errMsg)
 	}
 	logger.Debugf("[%s] Received offer for bike %s at price: '%.2f'",
-		shortStr(pr.Node.ID().Pretty()), shortStr(bikeID), price)
+		shortID(pr.Node.ID()), shortID(bikeID), price)
 	var rID string
 	if price > pr.maxPrice {
 		logger.Debugf("[%s] Rejected offer for price '%.2f'",
-			shortStr(pr.Node.ID().Pretty()), price)
+			shortID(pr.Node.ID()), price)
 		rID = "reject"
 		pr.rentalRequests[j.Key()] <- ""
 	} else {
 		logger.Debugf("[%s] Accepted offer for price '%.2f'",
-			shortStr(pr.Node.ID().Pretty()), price)
+			shortID(pr.Node.ID()), price)
 		rID = "accept"
 		pr.rentalRequests[j.Key()] <- bikeID
 	}
@@ -326,7 +328,7 @@ func (pr *personReasoner) bikeRental(origin, destination string, result chan str
 	}
 	pr.Node.OpenInstances[instance.Key()] = id
 	event := events.MakeNewEvent(instance)
-	logger.Infof("[%s] Sent rent request to %s", shortStr(pr.Node.ID().Pretty()), shortStr(id.Pretty()))
+	logger.Infof("[%s] Sent rent request to %s", shortID(pr.Node.ID()), shortID(id))
 	// send event without blocking execution
 	okChan, errChan := sendEventWithResults(pr.Node, id, event)
 	select {
@@ -376,7 +378,7 @@ func (pr *personReasoner) stationSearch(c Coords, result chan string, errc chan 
 
 func (pr *personReasoner) pickBike(bikeID, rentalID string) {
 	// wait until the bike node is found
-	found := make(chan string)
+	found := make(chan bool)
 	defer close(found)
 	go waitForContact(pr.Node, bikeID, found)
 	_ = <-found
@@ -386,4 +388,16 @@ func (pr *personReasoner) pickBike(bikeID, rentalID string) {
 	i, _ := pr.Instantiate(bikeRideProtocol, roles, inputs)
 	pr.Node.OpenInstances[i.Key()], _ = peer.IDB58Decode(bikeID)
 	go sendEvent(events.MakeNewEvent(i), i, pr.Node)
+	pr.currentBikeRide = i.Key()
+}
+
+func (pr *personReasoner) dropBike(stationID string) {
+	i, found := pr.openInstances[pr.currentBikeRide]
+	if !found {
+		logger.Errorf("[%s] Instance with key '%s' not found", shortID(pr.Node.ID()), i.Key())
+		return
+	}
+	pr.currentBikeRide = ""
+	i.SetValue("dropStation", stationID)
+	go sendEvent((events.MakeUpdateEvent(i)), i, pr.Node)
 }

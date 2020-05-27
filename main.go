@@ -59,5 +59,5 @@ func main() {
 	person.Node.AddContact(renter.Node.ID(), bikeRenterService)
 	person.Node.AddContact(renter.Node.ID(), stationSearchService)
 	person.Travel(demo.Coords{X: 15, Y: 15}, demo.Coords{X: 30, Y: 30})
-	// person.Travel(demo.Coords{X: 30, Y: 30}, demo.Coords{X: 15, Y: 15})
+	person.Travel(demo.Coords{X: 30, Y: 30}, demo.Coords{X: 15, Y: 15})
 }

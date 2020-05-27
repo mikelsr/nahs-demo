@@ -30,7 +30,7 @@ func NewRenter(stations ...*Station) Renter {
 	r.Node = net.LocalNode(r.reasoner)
 	r.reasoner.Node = r.Node
 
-	logger.Debugf("\tCreated renter with ID %s (%s)", shortID(r), r.Node.ID())
+	logger.Debugf("\tCreated renter with ID %s (%s)", shortID(r.ID()), r.Node.ID())
 	return r
 }
 
@@ -132,7 +132,7 @@ func (rr *renterReasoner) RegisterInstance(i bspl.Instance) error {
 		err = rr.registerStationSearch(i)
 	}
 	if err != nil {
-		logger.Errorf("[%s] %s", shortStr(rr.Node.ID().Pretty()), err)
+		logger.Errorf("[%s] %s", shortID(rr.Node.ID()), err)
 	}
 	return err
 }
@@ -220,8 +220,8 @@ func (rr *renterReasoner) updateBikeRental(j bspl.Instance, actions []bspl.Actio
 	client := j.Roles()["Client"]
 	bikeID := j.GetValue("bikeID")
 	rID := j.GetValue("rID")
-	logger.Debugf("[%s] Response from %s for bike %s offer: %s", shortStr(rr.Node.ID().Pretty()),
-		shortStr(client), shortStr(bikeID), rID)
+	logger.Debugf("[%s] Response from %s for bike %s offer: %s", shortID(rr.Node.ID()),
+		shortID(client), shortID(bikeID), rID)
 	return nil
 }
 

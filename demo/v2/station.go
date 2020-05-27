@@ -20,7 +20,7 @@ func NewStation(c Coords) Station {
 	//p.Node = nahs.NewNode(p.reasoner)
 	s.Node = net.LocalNode(s.reasoner)
 	s.reasoner.Node = s.Node
-	logger.Debugf("Created station with ID %s (%s)", shortID(s), s.ID())
+	logger.Debugf("Created station with ID %s (%s)", shortID(s.ID()), s.ID())
 	return s
 }
 
@@ -103,7 +103,7 @@ func (sr *stationReasoner) UpdateInstance(newVersion bspl.Instance) error {
 
 func (sr *stationReasoner) dockBike(b *Bike) {
 	if !sr.bikes.has(b.ID()) {
-		logger.Infof("[%s] bike %s docked", shortStr(sr.Node.ID().Pretty()), shortID(b))
+		logger.Infof("[%s] bike %s docked", shortID(sr.Node.ID()), shortID(b.ID()))
 		sr.bikes.dock(b)
 	}
 }
