@@ -7,7 +7,9 @@ import (
 	"runtime"
 	"strings"
 
+	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"github.com/mikelsr/bspl"
+	"github.com/mikelsr/nahs"
 )
 
 func getProtoFolder() (string, error) {
@@ -40,4 +42,17 @@ func GetProtocol(filename string) bspl.Protocol {
 		panic(err)
 	}
 	return p
+}
+
+// IntroduceNodes stores the contact information of each node in
+// every other node
+func IntroduceNodes(nodes ...*nahs.Node) {
+	for i, n1 := range nodes {
+		for j, n2 := range nodes {
+			if i == j {
+				continue
+			}
+			n1.Peerstore().AddAddrs(n2.ID(), n2.Addrs(), peerstore.PermanentAddrTTL)
+		}
+	}
 }

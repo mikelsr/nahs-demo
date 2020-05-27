@@ -3,6 +3,7 @@ module github.com/mikelsr/nahs-demo
 go 1.14
 
 require (
+	github.com/fatih/color v1.9.0
 	github.com/google/uuid v1.1.1
 	github.com/ipfs/go-log v1.0.4
 	github.com/ipfs/go-log/v2 v2.0.8 // indirect

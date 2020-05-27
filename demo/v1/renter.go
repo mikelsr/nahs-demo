@@ -53,7 +53,7 @@ func (r Renter) offerBike(instanceKey string) bool {
 	instance.SetValue("bikeID", "testBike")
 	event := events.MakeUpdateEvent(instance)
 	target := r.node.OpenInstances[instanceKey]
-	logger.Debugf("Offer bike to '%s'", target)
+	logger.Infof("Offered Offer bike to '%s'", target)
 	ok, err := r.node.SendEvent(target, event)
 	if err != nil {
 		logger.Error(err)
@@ -155,7 +155,7 @@ func (rr *renterReasoner) UpdateInstance(j bspl.Instance) error {
 	client := i.Roles()["Client"]
 	bikeID := i.GetValue("bikeID")
 	rID := i.GetValue("rID")
-	logger.Infof("Response from '%s' for bike '%s' offer: '%s'", client, bikeID, rID)
+	logger.Debugf("Response from '%s' for bike '%s' offer: '%s'", client, bikeID, rID)
 	return nil
 }
 

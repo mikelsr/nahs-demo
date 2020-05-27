@@ -26,4 +26,6 @@ var (
 	stationSearchProtocol = demo.GetProtocol(stationSearchFile)
 
 	logger = log.Logger(logName)
+	// LocalNodes must be set to True if the used nodes are local nodes
+	LocalNodes = false
 )

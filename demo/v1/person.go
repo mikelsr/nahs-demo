@@ -82,11 +82,11 @@ func (p Person) handleOffers() {
 		instance := p.reasoner.openInstances[o.instanceKey]
 		var rID string
 		if o.price > p.maxPrice {
-			logger.Debugf("Rejected offer from '%s' for price '%.2f'",
+			logger.Infof("Rejected offer from '%s' for price '%.2f'",
 				target, o.price)
 			rID = "reject"
 		} else {
-			logger.Debugf("Accepted offer from '%s' for price '%.2f'",
+			logger.Infof("Accepted offer from '%s' for price '%.2f'",
 				target, o.price)
 			rID = "accept"
 		}
@@ -181,7 +181,7 @@ func (pr *personReasoner) UpdateInstance(j bspl.Instance) error {
 	if err != nil {
 		return err
 	}
-	logger.Debugf("Received offer for price: '%.2f'", price)
+	logger.Infof("Received offer for price: '%.2f'", price)
 	pr.offers <- offer{instanceKey: i.Key(), price: price}
 	return nil
 }

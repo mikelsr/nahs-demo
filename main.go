@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/ipfs/go-log"
-	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	"github.com/mikelsr/bspl"
 	common "github.com/mikelsr/nahs-demo/demo"
 	demo "github.com/mikelsr/nahs-demo/demo/v2"
@@ -38,7 +37,7 @@ var (
 
 func main() {
 	log.SetAllLoggers(log.LevelInfo)
-	log.SetLogLevel("nahs/net", "info")
+	// log.SetLogLevel("nahs/net", "info")
 	log.SetLogLevel("nahs-demo/v2", "debug")
 
 	b1 := demo.NewBike()
@@ -54,8 +53,11 @@ func main() {
 	renter := demo.NewRenter(&s1, &s2)
 	person := demo.NewPerson()
 
-	person.Node.Peerstore().AddAddrs(renter.Node.ID(), renter.Node.Addrs(), peerstore.PermanentAddrTTL)
+	//person.Node.Peerstore().AddAddrs(renter.Node.ID(), renter.Node.Addrs(), peerstore.PermanentAddrTTL)
+	common.IntroduceNodes(b1.Node, b2.Node, b3.Node, s1.Node, s2.Node, renter.Node, person.Node)
+
 	person.Node.AddContact(renter.Node.ID(), bikeRenterService)
 	person.Node.AddContact(renter.Node.ID(), stationSearchService)
 	person.Travel(demo.Coords{X: 15, Y: 15}, demo.Coords{X: 30, Y: 30})
+	// person.Travel(demo.Coords{X: 30, Y: 30}, demo.Coords{X: 15, Y: 15})
 }

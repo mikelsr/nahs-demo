@@ -23,8 +23,7 @@ func NewBike() Bike {
 	//p.Node = nahs.NewNode(p.reasoner)
 	b.Node = net.LocalNode(b.reasoner)
 	b.reasoner.Node = b.Node
-
-	logger.Debugf("Created bike with ID: '%s'", b.ID())
+	logger.Debugf("\tCreated bike with ID %s (%s)", shortID(b), b.ID())
 	return b
 }
 
