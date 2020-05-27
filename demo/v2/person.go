@@ -57,10 +57,9 @@ func (p Person) Travel(src Coords, dst Coords) error {
 	case bikeID = <-result:
 		if bikeID == "" {
 			errMsg := "Bike found but rejected."
-			logger.Info()
 			return errors.New(errMsg)
 		}
-		logger.Infof("Bike rented: %s", bikeID)
+		logger.Infof("Bike with '%s' rented", bikeID)
 	case err := <-errc:
 		logger.Infof("Couldn't rent bike: %s", err)
 		return err

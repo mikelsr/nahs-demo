@@ -44,7 +44,7 @@ type renterReasoner struct {
 
 	stationSearchRequests map[string]chan string
 
-	stations []*Station
+	stations map[string]*Station
 }
 
 func newRenterReasoner(stations ...*Station) *renterReasoner {
@@ -60,7 +60,10 @@ func newRenterReasoner(stations ...*Station) *renterReasoner {
 		stationSearchProtocol.Key(): stationSearchProtocol,
 	}
 	r.stationSearchRequests = make(map[string]chan string)
-	r.stations = stations
+	r.stations = make(map[string]*Station)
+	for _, s := range stations {
+		r.stations[s.ID()] = s
+	}
 	return r
 }
 
@@ -137,7 +140,13 @@ func (rr *renterReasoner) registerBikeRental(i bspl.Instance) error {
 		return errors.New(errMsg)
 	}
 	i.SetValue("price", fmt.Sprint(rr.calculatePrice()))
-	i.SetValue("bikeID", "testBike") // TODO: select available bike
+	// TODO: check that station is found
+	station := rr.stations[stationID]
+	bike := station.reasoner.bikes.reserveBike()
+	if bike == nil {
+		return fmt.Errorf("No available bikes in station '%s'", station.ID())
+	}
+	i.SetValue("bikeID", bike.ID()) // TODO: select available bike
 	go sendEvent(events.MakeUpdateEvent(i), i, rr.Node)
 	return nil
 }
@@ -163,7 +172,7 @@ func (rr *renterReasoner) registerStationSearch(i bspl.Instance) error {
 		return errors.New(errMsg)
 	}
 	station := rr.nearestStation(Coords{X: x, Y: y})
-	i.SetValue("stationID", station.ID)
+	i.SetValue("stationID", station.ID())
 	go sendEvent(events.MakeUpdateEvent(i), i, rr.Node)
 	return nil
 }
@@ -214,10 +223,11 @@ func (rr renterReasoner) nearestStation(c Coords) *Station {
 	if len(rr.stations) == 0 {
 		return nil
 	}
-	s := rr.stations[0]
-	minDist := math.Sqrt(math.Pow(s.Coords.X-c.X, 2) + math.Pow(s.Coords.Y-c.Y, 2))
-	for _, ns := range rr.stations[1:] {
-		dist := math.Sqrt(math.Pow(ns.Coords.X-c.X, 2) + math.Pow(ns.Coords.Y-c.Y, 2))
+
+	minDist := math.MaxFloat64
+	var s *Station
+	for _, ns := range rr.stations {
+		dist := math.Sqrt(math.Pow(ns.Coords().X-c.X, 2) + math.Pow(ns.Coords().Y-c.Y, 2))
 		if dist < minDist {
 			minDist = dist
 			s = ns
@@ -236,7 +246,7 @@ func (rr renterReasoner) calculatePrice() float64 {
 
 func (rr renterReasoner) hasStation(stationID string) bool {
 	for _, s := range rr.stations {
-		if s.ID == stationID {
+		if s.ID() == stationID {
 			return true
 		}
 	}
