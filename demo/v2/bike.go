@@ -47,6 +47,8 @@ type bikeReasoner struct {
 
 	currentRider   peer.ID
 	currentStation string
+
+	updateBuffer map[string]bspl.Instance
 }
 
 func newBikeReasoner() *bikeReasoner {
@@ -59,6 +61,7 @@ func newBikeReasoner() *bikeReasoner {
 	b.offeredServices = map[string]bspl.Protocol{
 		bikeRideProtocol.Key(): bikeRideProtocol,
 	}
+	b.updateBuffer = make(map[string]bspl.Instance)
 	return &b
 }
 
@@ -126,6 +129,10 @@ func (br *bikeReasoner) RegisterInstance(i bspl.Instance) error {
 func (br *bikeReasoner) UpdateInstance(j bspl.Instance) error {
 	i, found := br.openInstances[j.Key()]
 	if !found {
+		// buffer bike drops that in specific cases may arrive before the pickups
+		if j.Protocol().Key() == bikeRideProtocol.Key() {
+			br.updateBuffer[j.Key()] = j
+		}
 		return fmt.Errorf("Instance '%s' not found", j.Key())
 	}
 	actions, _, err := i.Diff(j)
@@ -173,5 +180,10 @@ func (br *bikeReasoner) registerBikeRide(i bspl.Instance) error {
 	br.currentStation = ""
 
 	logger.Infof("\t[%s] New rider %s", shortID(br.Node.ID()), shortID(riderID))
+
+	if update, found := br.updateBuffer[i.Key()]; found {
+		err = br.UpdateInstance(update)
+		delete(br.updateBuffer, i.Key())
+	}
 	return nil
 }
