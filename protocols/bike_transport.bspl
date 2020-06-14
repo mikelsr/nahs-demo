@@ -1,10 +1,10 @@
 BikeTransport {
-        role Renter, Transport
+        role Requester, Transport
         parameter out ID key, in bikeNum, in src, in dst, in datetime, out rID, out result
 
-        Renter -> Transport: request[out ID, in bikeNum, in src, in dst, in datetime]
-        Transport -> Renter: accept[in ID, out rID]
-        Transport -> Renter: reject[in ID, out rID]
-        Transport -> Renter: success[in ID, out result]
-        Transport -> Renter: failure[in ID, out result]
+        Requester -> Transport: request[out ID, in bikeNum, in src, in dst, in datetime]
+        Transport -> Requester: accept[in ID, out rID]
+        Transport -> Requester: reject[in ID, out rID]
+        Transport -> Requester: success[in ID, out result]
+        Transport -> Requester: failure[in ID, out result]
 }

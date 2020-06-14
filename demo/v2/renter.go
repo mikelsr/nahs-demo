@@ -9,13 +9,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/mikelsr/bspl"
+	imp "github.com/mikelsr/bspl/implementation"
 	"github.com/mikelsr/nahs"
 	"github.com/mikelsr/nahs/events"
 	"github.com/mikelsr/nahs/net"
 )
 
-// Renter of bycicles, controls stations
+// Renter of bikes, controls stations
 type Renter struct {
 	reasoner *renterReasoner
 	Node     *nahs.Node
@@ -48,6 +50,7 @@ type renterReasoner struct {
 	droppedInstances map[string]bspl.Instance
 
 	stationSearchRequests map[string]chan string
+	transportRequests     map[string]chan string
 
 	stations map[string]*Station
 }
@@ -57,14 +60,17 @@ func newRenterReasoner(stations ...*Station) *renterReasoner {
 	// initialize maps
 	r.openInstances = make(map[string]bspl.Instance)
 	r.droppedInstances = make(map[string]bspl.Instance)
-	r.consumedServices = make(map[string]bspl.Protocol)
+	r.consumedServices = map[string]bspl.Protocol{
+		bikeTransportProtocol.Key(): bikeTransportProtocol,
+	}
 	// rent bike, ride bike, search for a near station
 	r.offeredServices = map[string]bspl.Protocol{
 		bikeRentalProtocol.Key():    bikeRentalProtocol,
-		bikeRequestProtocol.Key():   bikeRideProtocol,
+		bikeRequestProtocol.Key():   bikeRequestProtocol,
 		stationSearchProtocol.Key(): stationSearchProtocol,
 	}
 	r.stationSearchRequests = make(map[string]chan string)
+	r.transportRequests = make(map[string]chan string)
 	r.stations = make(map[string]*Station)
 	for _, s := range stations {
 		r.stations[s.ID()] = s
@@ -101,7 +107,36 @@ func (rr *renterReasoner) Instances(p bspl.Protocol) []bspl.Instance {
 }
 
 func (rr *renterReasoner) Instantiate(p bspl.Protocol, roles bspl.Roles, ins bspl.Values) (bspl.Instance, error) {
-	return nil, fmt.Errorf("Protocol '%s' not supported by this Node", p.Key())
+	if _, consumed := rr.consumedServices[p.Key()]; !consumed {
+		return nil, fmt.Errorf("Protocol '%s' not supported by this Node", p.Key())
+	}
+	switch p.Key() {
+	case bikeTransportProtocol.Key():
+		return rr.instantiateBikeTransport(roles, ins)
+	}
+	return nil, fmt.Errorf("Unkown protocol '%s'", p.Key())
+}
+
+func (rr *renterReasoner) instantiateBikeTransport(roles bspl.Roles, values bspl.Values) (bspl.Instance, error) {
+	id := uuid.New().String()
+	params := make(map[string]string)
+	required := []string{"in bikeNum", "in src", "in dst", "in datetime"}
+	for _, r := range required {
+		v, found := values[r]
+		if !found {
+			return nil, fmt.Errorf("Missing parameter: '%s'", r)
+		}
+		params[r] = v
+	}
+	params["out ID key"] = id
+	i := imp.NewInstance(bikeTransportProtocol, roles)
+	i.SetValue("ID", id)
+	i.SetValue("dst", params["in dst"])
+	i.SetValue("src", params["in src"])
+	i.SetValue("datetime", params["in datetime"])
+	i.SetValue("bikeNum", params["in bikeNum"])
+	rr.openInstances[i.Key()] = i
+	return i, nil
 }
 
 func (rr *renterReasoner) RegisterInstance(i bspl.Instance) error {
@@ -128,6 +163,8 @@ func (rr *renterReasoner) RegisterInstance(i bspl.Instance) error {
 	switch i.Protocol().Key() {
 	case bikeRentalProtocol.Key():
 		err = rr.registerBikeRental(i)
+	case bikeRequestProtocol.Key():
+		err = rr.registerBikeRequest(i)
 	case stationSearchProtocol.Key():
 		err = rr.registerStationSearch(i)
 	}
@@ -152,6 +189,60 @@ func (rr *renterReasoner) registerBikeRental(i bspl.Instance) error {
 		return fmt.Errorf("No available bikes in station '%s'", station.ID())
 	}
 	i.SetValue("bikeID", bike.ID()) // TODO: select available bike
+	go sendEvent(events.MakeUpdateEvent(i), i, rr.Node)
+	return nil
+}
+
+func (rr *renterReasoner) registerBikeRequest(i bspl.Instance) error {
+	bikeNumStr := i.GetValue("bikeNum")
+	dtStr := i.GetValue("datetime")
+	stationID := i.GetValue("station")
+	logger.Debugf("[%s] Received request for %s bikes at station %s and time %s",
+		shortID(rr.Node.ID()), bikeNumStr, shortID(stationID), dtStr)
+
+	// check param validity
+	bikeNum, err := strconv.ParseInt(bikeNumStr, 10, 64)
+	if err != nil {
+		return fmt.Errorf("Invalid bikeNum: '%s'", bikeNumStr)
+	}
+	dt, err := time.Parse(time.RFC3339, dtStr)
+	if err != nil {
+		return fmt.Errorf("Invalid datetime: '%s'", dtStr)
+	}
+	var station *Station
+	for _, s := range rr.stations {
+		if s.ID() == stationID {
+			station = s
+			break
+		}
+	}
+	if station == nil {
+		return fmt.Errorf("Station '%s' not found", stationID)
+	}
+	errc := make(chan error)
+	result := make(chan string)
+
+	go rr.requestTransport(int(bikeNum), station, dt, result, errc)
+
+	var rID string
+
+	select {
+	case rID = <-result:
+		break
+	case err = <-errc:
+		logger.Errorf("\t[%s] Couldn't request transport to '%s', err: '%s'",
+			shortID(rr.Node.ID()), shortID(stationID), err)
+		return err
+	}
+	offerNum := strconv.Itoa(int(bikeNum))
+	if rID == "accept" {
+		logger.Infof("[%s] Accepting offer '%s'", shortID(rr.Node.ID()), i.Key())
+		i.SetValue("rID", "accept")
+		i.SetValue("offerNum", offerNum)
+	} else {
+		logger.Infof("[%s] Rejecting offer '%s'", shortID(rr.Node.ID()), i.Key())
+		i.SetValue("rID", "reject")
+	}
 	go sendEvent(events.MakeUpdateEvent(i), i, rr.Node)
 	return nil
 }
@@ -194,6 +285,8 @@ func (rr *renterReasoner) UpdateInstance(j bspl.Instance) error {
 	switch j.Protocol().Key() {
 	case bikeRentalProtocol.Key():
 		err = rr.updateBikeRental(j, actions)
+	case bikeTransportProtocol.Key():
+		err = rr.updateBikeTransport(j, actions)
 	}
 	if err != nil {
 		return err
@@ -222,6 +315,23 @@ func (rr *renterReasoner) updateBikeRental(j bspl.Instance, actions []bspl.Actio
 	rID := j.GetValue("rID")
 	logger.Debugf("[%s] Response from %s for bike %s offer: %s", shortID(rr.Node.ID()),
 		shortID(client), shortID(bikeID), rID)
+	return nil
+}
+
+func (rr *renterReasoner) updateBikeTransport(j bspl.Instance, actions []bspl.Action) error {
+	rID := j.GetValue("rID")
+	result := j.GetValue("result")
+	if rID != "" {
+		if result != "" {
+			// success or failure
+		} else {
+			// accept/reject
+			requestResult := rr.transportRequests[j.Key()]
+			requestResult <- rID
+		}
+	} else {
+		return errors.New("Empty rID")
+	}
 	return nil
 }
 
@@ -257,4 +367,52 @@ func (rr renterReasoner) hasStation(stationID string) bool {
 		}
 	}
 	return false
+}
+
+func (rr *renterReasoner) requestTransport(n int, dst *Station, dt time.Time, result chan string, errc chan error) {
+	transports := rr.Node.FindContact(bikeTransportProtocol.Key(), "Transport")
+	if len(transports) == 0 {
+		errc <- errors.New("no transports fond")
+		return
+	}
+	id := transports[0]
+	logger.Debugf("[%s] Request bike transport from %s", shortID(rr.Node.ID()), shortID(id))
+	// find an station with enough bikes
+	var src *Station
+	m := 0
+	for _, s := range rr.stations {
+		if s.ID() == dst.ID() {
+			continue
+		}
+		if s.reasoner.bikes.available.len() > m {
+			src = s
+			m = s.reasoner.bikes.available.len()
+		}
+	}
+	if src == nil || m < n {
+		errc <- errors.New("couldn't find a station to take bikes from")
+		return
+	}
+	t, err := dt.MarshalText()
+	if err != nil {
+		errc <- err
+		return
+	}
+	roles := bspl.Roles{"Requester": rr.Node.ID().Pretty(), "Transport": id.Pretty()}
+	inputs := bspl.Values{
+		"in src":      src.ID(),
+		"in dst":      dst.ID(),
+		"in bikeNum":  strconv.Itoa(n),
+		"in datetime": string(t),
+	}
+	protocol := bikeTransportProtocol
+	instance, err := rr.Instantiate(protocol, roles, inputs)
+	rr.Node.OpenInstances[instance.Key()] = id
+	if err != nil {
+		errc <- err
+		return
+	}
+
+	go sendEvent(events.MakeNewEvent(instance), instance, rr.Node)
+	rr.transportRequests[instance.Key()] = result
 }

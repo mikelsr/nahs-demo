@@ -13,7 +13,7 @@
 * `bikeID`: Identifier of the bike to be rented.
 * `price`: Accored price in euros per minute.
 * `origin`: ID of the bike station the bike is being rent at.
-* `destination`: ID of the bike station the bike is being dropped at, can be "*" if the destination is unknown.
+* `destination`: ID of the bike station the bike is being dropped at, can be empty if the destination is unknown.
 * `rID`: either accept or reject.
 
 #### Actions

@@ -155,7 +155,7 @@ func (br *bikeReasoner) updateBikeRide(j bspl.Instance, actions []bspl.Action) e
 		return errors.New("Unexpected actions")
 	}
 	stationID := j.GetValue("dropStation")
-	logger.Debugf("[%s]\tDropped at %s by %s",
+	logger.Debugf("\t[%s]\tDropped at %s by %s",
 		shortID(br.Node.ID()), shortID(stationID), shortID(br.currentRider))
 
 	br.currentStation = stationID

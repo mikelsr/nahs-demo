@@ -162,7 +162,7 @@ func (pr *personReasoner) Instances(p bspl.Protocol) []bspl.Instance {
 // Instantiate a protocol. Check if the assigned role is a role
 // the reasoner is willing to play.
 func (pr *personReasoner) Instantiate(p bspl.Protocol, roles bspl.Roles, ins bspl.Values) (bspl.Instance, error) {
-	if _, offered := pr.consumedServices[p.Key()]; !offered {
+	if _, consumed := pr.consumedServices[p.Key()]; !consumed {
 		return nil, fmt.Errorf("Protocol '%s' not supported by this Node", p.Key())
 	}
 	switch p.Key() {

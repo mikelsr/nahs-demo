@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/ipfs/go-log"
 	"github.com/mikelsr/bspl"
 	common "github.com/mikelsr/nahs-demo/demo"
@@ -33,6 +35,14 @@ var (
 		Roles:    []bspl.Role{"Locator"},
 		Protocol: stationSearchProtocol,
 	}
+	bikeTransportService = net.Service{
+		Roles:    []bspl.Role{"Transport"},
+		Protocol: bikeTransportProtocol,
+	}
+	bikeRequestService = net.Service{
+		Roles:    []bspl.Role{"Renter"},
+		Protocol: bikeRequestProtocol,
+	}
 )
 
 func main() {
@@ -50,14 +60,28 @@ func main() {
 	s2 := demo.NewStation(demo.Coords{X: 40, Y: 40})
 	s2.DockBike(&b3)
 
+	transport := demo.NewTransport(&s1, &s2)
+	university := demo.NewUniversity(&s1)
+
 	renter := demo.NewRenter(&s1, &s2)
 	person := demo.NewPerson()
 
 	//person.Node.Peerstore().AddAddrs(renter.Node.ID(), renter.Node.Addrs(), peerstore.PermanentAddrTTL)
-	common.IntroduceNodes(b1.Node, b2.Node, b3.Node, s1.Node, s2.Node, renter.Node, person.Node)
+	common.IntroduceNodes(b1.Node, b2.Node, b3.Node,
+		s1.Node, s2.Node,
+		person.Node,
+		transport.Node,
+		university.Node,
+		renter.Node,
+	)
 
 	person.Node.AddContact(renter.Node.ID(), bikeRenterService)
 	person.Node.AddContact(renter.Node.ID(), stationSearchService)
+	renter.Node.AddContact(transport.Node.ID(), bikeTransportService)
+	university.Node.AddContact(renter.Node.ID(), bikeRequestService)
+
 	person.Travel(demo.Coords{X: 15, Y: 15}, demo.Coords{X: 30, Y: 30})
+	university.RequestBikes(1, time.Now().Add(2*time.Second))
+
 	// person.Travel(demo.Coords{X: 30, Y: 30}, demo.Coords{X: 15, Y: 15})
 }

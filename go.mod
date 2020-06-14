@@ -11,7 +11,6 @@ require (
 	github.com/libp2p/go-libp2p-circuit v0.2.3 // indirect
 	github.com/libp2p/go-libp2p-core v0.5.6
 	github.com/libp2p/go-libp2p-kad-dht v0.8.0 // indirect
-	github.com/libp2p/go-libp2p-peer v0.2.0
 	github.com/libp2p/go-libp2p-peerstore v0.2.4
 	github.com/libp2p/go-libp2p-record v0.1.3 // indirect
 	github.com/libp2p/go-libp2p-swarm v0.2.5 // indirect

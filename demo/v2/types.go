@@ -27,6 +27,10 @@ func (q *bikeQueue) pop() *Bike {
 	return b
 }
 
+func (q *bikeQueue) len() int {
+	return len(*q)
+}
+
 type bikeStorage struct {
 	available *bikeQueue
 	reserved  map[string]*Bike
