@@ -5,6 +5,6 @@ BikeTransport {
         Requester -> Transport: request[out ID, in bikeNum, in src, in dst, in datetime]
         Transport -> Requester: accept[in ID, out rID]
         Transport -> Requester: reject[in ID, out rID]
-        Transport -> Requester: success[in ID, out result]
-        Transport -> Requester: failure[in ID, out result]
+        Transport -> Requester: success[in ID, in rID, out result]
+        Transport -> Requester: failure[in ID, in rID, out result]
 }

@@ -169,8 +169,8 @@ func (ur *universityReasoner) UpdateInstance(newVersion bspl.Instance) error {
 		return err
 	}
 	switch i.Protocol().Key() {
-	case bikeRentalProtocol.Key():
-		err = ur.updateBikeRequest(i, actions)
+	case bikeRequestProtocol.Key():
+		err = ur.updateBikeRequest(newVersion, actions)
 	}
 	if err != nil {
 		return err
@@ -210,7 +210,7 @@ func (ur *universityReasoner) requestBikes(n int, dt time.Time, result chan int,
 		return ""
 	}
 	id := renters[0]
-	logger.Infof("[%s], Requesting %d bikes from %s to station %s at %v",
+	logger.Infof("[%s] Requesting %d bike(s) from %s to station %s at %v",
 		shortID(ur.Node.ID()), n, shortID(id), shortID(ur.nearest.ID()), dt)
 	roles := bspl.Roles{"Requester": ur.Node.ID().Pretty(), "Renter": id.Pretty()}
 	t, err := dt.MarshalText()

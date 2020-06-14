@@ -236,12 +236,13 @@ func (rr *renterReasoner) registerBikeRequest(i bspl.Instance) error {
 	}
 	offerNum := strconv.Itoa(int(bikeNum))
 	if rID == "accept" {
-		logger.Infof("[%s] Accepting offer '%s'", shortID(rr.Node.ID()), i.Key())
+		logger.Infof("[%s] Accepting request '%s'", shortID(rr.Node.ID()), i.Key())
 		i.SetValue("rID", "accept")
 		i.SetValue("offerNum", offerNum)
 	} else {
-		logger.Infof("[%s] Rejecting offer '%s'", shortID(rr.Node.ID()), i.Key())
+		logger.Infof("[%s] Rejecting request '%s'", shortID(rr.Node.ID()), i.Key())
 		i.SetValue("rID", "reject")
+		i.SetValue("offerNum", offerNum)
 	}
 	go sendEvent(events.MakeUpdateEvent(i), i, rr.Node)
 	return nil

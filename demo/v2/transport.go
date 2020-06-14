@@ -237,34 +237,42 @@ func (tr *transportReasoner) transportBikes(src, dst *Station, n int64, renter, 
 	if int64(available) < n {
 		return fmt.Errorf("%d bikes were requested but only %d were available", available, n)
 	}
+
+	// send ok to requester
+	instance := tr.openInstances[key]
+	instance.SetValue("rID", "accept")
+	go sendEvent(events.MakeUpdateEvent(instance), instance, tr.Node)
+
 	// asume location of transport is the first station
 	tr.coords = src.Coords()
 
+	keys := make([]string, n)
 	bikes := make([]*Bike, n)
 	// pick bikes
 	for i := 0; int64(i) < n; i++ {
 		b := src.reasoner.bikes.available.pop()
-		tr.pickBike(b.ID(), renter)
+		instance := tr.pickBike(b.ID(), renter)
+		keys[i] = instance.Key()
 		src.reasoner.releaseBike(b)
 		bikes[i] = b
 		logger.Debugf("[%s] Picked up bike %s from %s", shortID(tr.Node.ID()), shortID(b.ID()), shortID(src.ID()))
 	}
+
 	// move bikes
-	logger.Debugf("[%s] Moving from %v to %v", src.Coords(), dst.Coords())
+	logger.Debugf("[%s] Moving from %v to %v", shortID(tr.Node.ID()), src.Coords(), dst.Coords())
 	time.Sleep(estimatedDuration)
-	logger.Debugf("[%s] Moved from %v to %v", src.Coords(), dst.Coords())
+	logger.Debugf("[%s] Moved from %v to %v", shortID(tr.Node.ID()), src.Coords(), dst.Coords())
 	tr.coords = dst.Coords()
 
 	// drop bikes
-	for _, b := range bikes {
+	for i, b := range bikes {
 		dst.reasoner.dockBike(b)
-		tr.dropBike(b.ID(), dst.ID())
+		tr.dropBike(b.ID(), dst.ID(), keys[i])
 		logger.Debugf("[%s] Dropped bike %s at %s", shortID(tr.Node.ID()), shortID(b.ID()), shortID(dst.ID()))
 	}
 
-	i := tr.openInstances[key]
-	i.SetValue("result", "success")
-	go sendEvent(events.MakeUpdateEvent(i), i, tr.Node)
+	instance.SetValue("result", "success")
+	go sendEvent(events.MakeUpdateEvent(instance), instance, tr.Node)
 	return nil
 }
 
@@ -283,8 +291,8 @@ func (tr *transportReasoner) pickBike(bikeID, rentalID string) bspl.Instance {
 	return i
 }
 
-func (tr *transportReasoner) dropBike(bikeID, stationID string) {
-	i, found := tr.openInstances[bikeID]
+func (tr *transportReasoner) dropBike(bikeID, stationID string, key string) {
+	i, found := tr.openInstances[key]
 	if !found {
 		logger.Errorf("[%s] Instance with key '%s' not found", shortID(tr.Node.ID()), i.Key())
 		return

@@ -103,11 +103,11 @@ func (sr *stationReasoner) UpdateInstance(newVersion bspl.Instance) error {
 
 func (sr *stationReasoner) dockBike(b *Bike) {
 	if !sr.bikes.has(b.ID()) {
-		logger.Infof("[%s] bike %s docked", shortID(sr.Node.ID()), shortID(b.ID()))
+		logger.Infof("[%s] Bike %s docked", shortID(sr.Node.ID()), shortID(b.ID()))
 		sr.bikes.dock(b)
 	}
 }
 
 func (sr *stationReasoner) releaseBike(b *Bike) {
-	sr.releaseBike(b)
+	sr.bikes.releaseBike(b.ID())
 }
