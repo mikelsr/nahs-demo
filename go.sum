@@ -431,10 +431,10 @@ github.com/miekg/dns v1.1.12/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3N
 github.com/miekg/dns v1.1.28/go.mod h1:KNUDUusw/aVsxyTYZM1oqvCicbwhgbNgztCETuNZ7xM=
 github.com/mikelsr/bspl v0.0.0-20200425163007-bda5911e92ba h1:vtNLbYDcL3T+y4eX8dSu+idgjU2fWEzspcUS1P1i3Bk=
 github.com/mikelsr/bspl v0.0.0-20200425163007-bda5911e92ba/go.mod h1:W8PTk2N7z7OG9BDNuCApk9OaD4QIe0ctAZoDlBGEPsY=
-github.com/mikelsr/bspl v0.0.0-20200427110552-307415f0fbac h1:Dko1oCZjcEohmFP8akzkZM7O1zOwje6veSsdZL5F4mY=
-github.com/mikelsr/bspl v0.0.0-20200427110552-307415f0fbac/go.mod h1:W8PTk2N7z7OG9BDNuCApk9OaD4QIe0ctAZoDlBGEPsY=
-github.com/mikelsr/nahs v0.0.0-20200525163142-dace905621bd h1:Cq35zS2TkJP2BxIK+b0wONjTm9AV2G4rDIeAycVg8Ro=
-github.com/mikelsr/nahs v0.0.0-20200525163142-dace905621bd/go.mod h1:voSwTP1BusswQvQ8kpu8lUUfz28BiMPiD1pHwfXY8nw=
+github.com/mikelsr/bspl v0.0.0-20200618162931-50b84e017c3c h1:cbJbH/q8p6WtnXdNuvBqaefzAsAtGqEWvsIi74ekWcw=
+github.com/mikelsr/bspl v0.0.0-20200618162931-50b84e017c3c/go.mod h1:W8PTk2N7z7OG9BDNuCApk9OaD4QIe0ctAZoDlBGEPsY=
+github.com/mikelsr/nahs v0.0.0-20200618163030-c517c0ffcb4e h1:fz6mClpE9oFVJupyAKxUlKGy/i0ji6urk84lC5flxhk=
+github.com/mikelsr/nahs v0.0.0-20200618163030-c517c0ffcb4e/go.mod h1:Wenn1EZ/hhHezcNaod3t7OBIDa9le2yRL3oHa0v9IL4=
 github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1 h1:lYpkrQH5ajf0OXOcUbGjvZxxijuBwbbmlSxLiuofa+g=
 github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1/go.mod h1:pD8RvIylQ358TN4wwqatJ8rNavkEINozVn9DtGI3dfQ=
 github.com/minio/sha256-simd v0.0.0-20190131020904-2d45a736cd16/go.mod h1:2FMWW+8GMoPweT6+pI63m9YE3Lmw4J71hV56Chs1E/U=

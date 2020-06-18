@@ -1,6 +1,8 @@
 package v2
 
 import (
+	"time"
+
 	log "github.com/ipfs/go-log"
 
 	demo "github.com/mikelsr/nahs-demo/demo"
@@ -28,4 +30,6 @@ var (
 	logger = log.Logger(logName)
 	// LocalNodes must be set to True if the used nodes are local nodes
 	LocalNodes = false
+
+	timeout = 2 * time.Second
 )

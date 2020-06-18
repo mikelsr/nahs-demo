@@ -50,12 +50,12 @@ func (u University) RequestBikes(n int, dt time.Time) error {
 	select {
 	case result := <-resultc:
 		if result > 0 {
-			logger.Infof("[%s] success requesting '%d' bikes", shortID(u.ID()), result)
+			logger.Infof("\t[%s] Success requesting '%d' bikes", shortID(u.ID()), result)
 		} else {
-			logger.Infof("[%s] bike request denied", shortID(u.ID()))
+			logger.Infof("\t[%s] bike request denied", shortID(u.ID()))
 		}
 	case err := <-errc:
-		logger.Errorf("[%s] error requesting bikes: %s", shortID(u.ID()), err)
+		logger.Errorf("\t[%s] error requesting bikes: %s", shortID(u.ID()), err)
 		return err
 	}
 	return nil
@@ -210,7 +210,7 @@ func (ur *universityReasoner) requestBikes(n int, dt time.Time, result chan int,
 		return ""
 	}
 	id := renters[0]
-	logger.Infof("[%s] Requesting %d bike(s) from %s to station %s at %v",
+	logger.Infof("\t[%s] Requesting %d bike(s) from %s to station %s at %v",
 		shortID(ur.Node.ID()), n, shortID(id), shortID(ur.nearest.ID()), dt)
 	roles := bspl.Roles{"Requester": ur.Node.ID().Pretty(), "Renter": id.Pretty()}
 	t, err := dt.MarshalText()

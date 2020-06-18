@@ -53,12 +53,14 @@ func main() {
 	b1 := demo.NewBike()
 	b2 := demo.NewBike()
 	b3 := demo.NewBike()
+	b4 := demo.NewBike()
 
 	s1 := demo.NewStation(demo.Coords{X: 8, Y: 8})
 	s1.DockBike(&b1)
 	s1.DockBike(&b2)
 	s2 := demo.NewStation(demo.Coords{X: 40, Y: 40})
 	s2.DockBike(&b3)
+	s2.DockBike(&b4)
 
 	transport := demo.NewTransport(&s1, &s2)
 	university := demo.NewUniversity(&s1)
@@ -66,8 +68,8 @@ func main() {
 	renter := demo.NewRenter(&s1, &s2)
 	person := demo.NewPerson()
 
-	//person.Node.Peerstore().AddAddrs(renter.Node.ID(), renter.Node.Addrs(), peerstore.PermanentAddrTTL)
-	common.IntroduceNodes(b1.Node, b2.Node, b3.Node,
+	common.IntroduceNodes(
+		b1.Node, b2.Node, b3.Node, b4.Node,
 		s1.Node, s2.Node,
 		person.Node,
 		transport.Node,
@@ -81,7 +83,6 @@ func main() {
 	university.Node.AddContact(renter.Node.ID(), bikeRequestService)
 
 	person.Travel(demo.Coords{X: 15, Y: 15}, demo.Coords{X: 30, Y: 30})
-	university.RequestBikes(1, time.Now().Add(2*time.Second))
-
+	university.RequestBikes(2, time.Now().Add(2*time.Second))
 	// person.Travel(demo.Coords{X: 30, Y: 30}, demo.Coords{X: 15, Y: 15})
 }

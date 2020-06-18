@@ -16,8 +16,8 @@ require (
 	github.com/libp2p/go-libp2p-swarm v0.2.5 // indirect
 	github.com/libp2p/go-libp2p-yamux v0.2.8 // indirect
 	github.com/libp2p/go-maddr-filter v0.1.0 // indirect
-	github.com/mikelsr/bspl v0.0.0-20200427110552-307415f0fbac
-	github.com/mikelsr/nahs v0.0.0-20200525163142-dace905621bd
+	github.com/mikelsr/bspl v0.0.0-20200618162931-50b84e017c3c
+	github.com/mikelsr/nahs v0.0.0-20200618163030-c517c0ffcb4e
 	github.com/multiformats/go-multibase v0.0.3 // indirect
 	golang.org/x/net v0.0.0-20200520182314-0ba52f642ac2 // indirect
 	golang.org/x/sys v0.0.0-20200523222454-059865788121 // indirect
